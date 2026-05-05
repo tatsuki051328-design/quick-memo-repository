@@ -1,5 +1,17 @@
-<svg xmlns='http://www.w3.org/2000/svg' width='192' height='192' viewBox='0 0 192 192'>
-  <rect width='192' height='192' fill='#000'/>
-  <rect x='24' y='24' width='144' height='144' rx='32' fill='#161616' stroke='rgba(255,255,255,0.1)' stroke-width='1'/>
-  <text x='96' y='118' font-family='Helvetica' font-size='72' font-weight='500' fill='white' text-anchor='middle'>Q</text>
+<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 512 512'>
+  <!-- Background -->
+  <rect width='512' height='512' fill='#0a0a0a'/>
+  <!-- Paper shape -->
+  <rect x='96' y='80' width='320' height='360' rx='32' fill='#161616' stroke='rgba(255,255,255,0.07)' stroke-width='2'/>
+  <!-- Purple title line -->
+  <rect x='136' y='148' width='240' height='22' rx='11' fill='rgba(196,181,253,0.9)'/>
+  <!-- Body lines -->
+  <rect x='136' y='196' width='200' height='16' rx='8' fill='rgba(255,255,255,0.45)'/>
+  <rect x='136' y='230' width='220' height='16' rx='8' fill='rgba(255,255,255,0.35)'/>
+  <rect x='136' y='264' width='180' height='16' rx='8' fill='rgba(255,255,255,0.25)'/>
+  <rect x='136' y='298' width='140' height='16' rx='8' fill='rgba(255,255,255,0.15)'/>
+  <!-- Purple circle with lightning bolt (quick) -->
+  <circle cx='368' cy='380' r='88' fill='rgba(167,139,250,0.95)'/>
+  <!-- Lightning bolt -->
+  <path d='M388 318 L352 382 L374 382 L344 446 L404 374 L382 374 Z' fill='white'/>
 </svg>
