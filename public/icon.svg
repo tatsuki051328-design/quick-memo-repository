@@ -1,0 +1,5 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='192' height='192' viewBox='0 0 192 192'>
+  <rect width='192' height='192' fill='#000'/>
+  <rect x='24' y='24' width='144' height='144' rx='32' fill='#161616' stroke='rgba(255,255,255,0.1)' stroke-width='1'/>
+  <text x='96' y='118' font-family='Helvetica' font-size='72' font-weight='500' fill='white' text-anchor='middle'>Q</text>
+</svg>

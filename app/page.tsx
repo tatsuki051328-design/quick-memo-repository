@@ -1,65 +1,276 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import { MemoCategory } from "@/lib/notion";
+
+const CATEGORIES: { value: MemoCategory; label: string }[] = [
+  { value: "private", label: "Private" },
+  { value: "work",    label: "Work"    },
+  { value: "diary",   label: "Diary"   },
+];
 
 export default function Home() {
+  const [title, setTitle]       = useState("");
+  const [body, setBody]         = useState("");
+  const [url, setUrl]           = useState("");
+  const [category, setCategory] = useState<MemoCategory>("private");
+  const [loading, setLoading]   = useState(false);
+  const [saved, setSaved]       = useState(false);
+  const [error, setError]       = useState("");
+  const titleRef   = useRef<HTMLInputElement>(null);
+  const momentRef  = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => { titleRef.current?.focus(); }, []);
+
+  useEffect(() => {
+    setError("");
+    if (category === "diary") {
+      setTitle("");
+      setUrl("");
+      setTimeout(() => momentRef.current?.focus(), 50);
+    } else {
+      setBody("");
+      setTimeout(() => titleRef.current?.focus(), 50);
+    }
+  }, [category]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (category === "diary") {
+      if (!body.trim()) { setError("メモを入力してください"); return; }
+    } else {
+      if (!title.trim()) { setError("タイトルを入力してください"); return; }
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/memos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: title.trim(), body: body.trim(), url: url.trim(), category }),
+      });
+      if (!res.ok) throw new Error();
+      setTitle(""); setBody(""); setUrl("");
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2200);
+      if (category === "diary") momentRef.current?.focus();
+      else titleRef.current?.focus();
+    } catch {
+      setError("保存に失敗しました");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const isDiary = category === "diary";
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="flex flex-col h-dvh bg-black">
+
+      {/* Header */}
+      <div className="safe-top shrink-0" style={{ background: "rgba(10,10,10,0.95)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderBottom: "0.5px solid rgba(255,255,255,0.1)" }}>
+        <div className="flex items-center justify-between px-5 py-4">
+          <div>
+            <p className="text-[17px] font-semibold text-white">QuickMemo</p>
+            <p className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+              {isDiary ? "NOTION · DIARY JOURNAL" : "NOTION · INBOX"}
+            </p>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Category toggle */}
+        <div className="px-5 pb-4 flex gap-2">
+          {CATEGORIES.map(({ value, label }) => {
+            const active = category === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setCategory(value)}
+                className="flex-1 py-3 rounded-xl text-[13px] font-semibold tracking-wide transition-all active:scale-95"
+                style={{
+                  background: active
+                    ? value === "diary"
+                      ? "rgba(167,139,250,0.2)"
+                      : "rgba(255,255,255,0.15)"
+                    : "rgba(255,255,255,0.05)",
+                  color: active
+                    ? value === "diary" ? "rgba(196,181,253,1)" : "#fff"
+                    : "rgba(255,255,255,0.35)",
+                  border: active
+                    ? value === "diary"
+                      ? "1px solid rgba(167,139,250,0.4)"
+                      : "1px solid rgba(255,255,255,0.25)"
+                    : "1px solid rgba(255,255,255,0.08)",
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
-      </main>
+      </div>
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
+
+          {isDiary ? (
+            /* ── Diary mode ── */
+            <div>
+              <label className="block text-[12px] font-medium tracking-widest mb-2" style={{ color: "rgba(196,181,253,0.7)" }}>
+                MOMENT
+              </label>
+              <textarea
+                ref={momentRef}
+                value={body}
+                onChange={(e) => { setBody(e.target.value); setError(""); }}
+                placeholder="今この瞬間の出来事や気持ちを..."
+                rows={8}
+                className="glass-input w-full rounded-2xl px-4 py-4 text-[15px] resize-none"
+                style={{
+                  background: "rgba(167,139,250,0.06)",
+                  border: "1px solid rgba(167,139,250,0.2)",
+                  color: "#fff",
+                  lineHeight: "1.7",
+                  caretColor: "rgba(196,181,253,1)",
+                }}
+              />
+              <p className="mt-2 text-[11px]" style={{ color: "rgba(255,255,255,0.25)" }}>
+                保存時に現在時刻が自動で付与されます
+              </p>
+            </div>
+          ) : (
+            /* ── Normal mode ── */
+            <>
+              <div>
+                <label className="block text-[12px] font-medium tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.5)" }}>
+                  TITLE
+                </label>
+                <input
+                  ref={titleRef}
+                  type="text"
+                  value={title}
+                  onChange={(e) => { setTitle(e.target.value); setError(""); }}
+                  placeholder="メモのタイトル"
+                  className="glass-input w-full rounded-2xl px-4 py-4 text-[16px] font-medium"
+                  style={{
+                    background: "rgba(255,255,255,0.06)",
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    color: "#fff",
+                    caretColor: "#fff",
+                  }}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[12px] font-medium tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.5)" }}>
+                  BODY
+                </label>
+                <textarea
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  placeholder="詳細メモ（任意）"
+                  rows={4}
+                  className="glass-input w-full rounded-2xl px-4 py-4 text-[15px] resize-none"
+                  style={{
+                    background: "rgba(255,255,255,0.06)",
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    color: "#fff",
+                    lineHeight: "1.6",
+                    caretColor: "#fff",
+                  }}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[12px] font-medium tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.5)" }}>
+                  URL
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "rgba(255,255,255,0.35)" }}>
+                    <LinkIcon />
+                  </span>
+                  <input
+                    type="url"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    placeholder="https://..."
+                    className="glass-input w-full rounded-2xl pl-10 pr-4 py-4 text-[15px]"
+                    style={{
+                      background: "rgba(255,255,255,0.06)",
+                      border: "1px solid rgba(255,255,255,0.12)",
+                      color: "#fff",
+                      caretColor: "#fff",
+                    }}
+                  />
+                </div>
+              </div>
+            </>
+          )}
+
+          {error && (
+            <p className="text-[13px] text-center" style={{ color: "rgba(255,100,100,0.8)" }}>
+              {error}
+            </p>
+          )}
+        </div>
+
+        {/* Bottom button */}
+        <div
+          className="safe-bottom shrink-0 px-5 pt-3 pb-4"
+          style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderTop: "0.5px solid rgba(255,255,255,0.08)" }}
+        >
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-4 rounded-2xl text-[15px] font-semibold transition-all active:scale-[0.97] disabled:opacity-30"
+            style={{
+              background: isDiary ? "rgba(167,139,250,0.12)" : "rgba(255,255,255,0.08)",
+              border: isDiary ? "1px solid rgba(167,139,250,0.3)" : "1px solid rgba(255,255,255,0.15)",
+              color: loading
+                ? "rgba(255,255,255,0.3)"
+                : isDiary ? "rgba(196,181,253,0.9)" : "rgba(255,255,255,0.9)",
+            }}
+          >
+            {loading ? "保存中..." : isDiary ? "Diary に記録" : "Save to Notion"}
+          </button>
+        </div>
+      </form>
+
+      {/* Toast */}
+      {saved && (
+        <div
+          className="fixed bottom-28 left-1/2 -translate-x-1/2 slide-up flex items-center gap-2 px-5 py-3 rounded-2xl text-[13px] font-medium whitespace-nowrap z-50"
+          style={{
+            background: "rgba(30,30,30,0.95)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            border: "0.5px solid rgba(255,255,255,0.15)",
+            color: "rgba(255,255,255,0.85)",
+          }}
+        >
+          <CheckIcon />
+          {isDiary ? "Diary に記録しました" : "Notionに保存しました"}
+        </div>
+      )}
     </div>
+  );
+}
+
+function LinkIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
   );
 }
