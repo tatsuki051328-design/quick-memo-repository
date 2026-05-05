@@ -113,20 +113,11 @@ export default function Home() {
     >
       {/* Header */}
       <div className="safe-top shrink-0" style={{ background: "rgba(10,10,10,0.95)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderBottom: "0.5px solid rgba(255,255,255,0.1)" }}>
-        <div className="flex items-center justify-between px-5 py-4">
+        <div className="flex items-center px-5 py-4">
           <div>
             <p className="text-[17px] font-semibold text-white">QuickMemo</p>
             <p className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>NOTION · INBOX</p>
           </div>
-          <button
-            type="button"
-            onClick={() => setDiaryOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-medium transition-all active:scale-95"
-            style={{ background: "rgba(167,139,250,0.12)", border: "1px solid rgba(167,139,250,0.3)", color: "rgba(196,181,253,0.9)" }}
-          >
-            <span style={{ fontSize: 14 }}>📓</span>
-            Diary
-          </button>
         </div>
 
         {/* Category toggle */}
